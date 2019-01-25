@@ -24,7 +24,7 @@ cat("\014")
 
 ## Get your own census key here:  https://api.census.gov/data/key_signup.html
 
-mycensuskey <- "aa1c6f90931bb2f61293b949a2ef8312b4ac679e"
+mycensuskey <- ""
 
 ## This is the year you are collecting census data for.
 ## In this instance I am using ACS 2007-2011, 5-year estimates. 
