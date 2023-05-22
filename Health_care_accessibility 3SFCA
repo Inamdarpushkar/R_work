@@ -1,0 +1,36 @@
+# Load required libraries
+library(sf)
+library(dplyr)
+
+# Read healthcare provider locations data
+provider_data <- read.csv("provider_data.csv")  # Replace with your provider data file
+
+# Read demand locations data
+demand_data <- read.csv("demand_data.csv")  # Replace with your demand data file
+
+# Read supply data (weights)
+supply_data <- read.csv("supply_data.csv")  # Replace with your supply data file
+
+# Define the distance threshold for catchment area
+distance_threshold <- 10  # Adjust the value as per your requirement
+
+# Calculate the weighted accessibility score for each demand location
+accessibility_scores <- vector("numeric", length = nrow(demand_data))
+for (i in 1:nrow(demand_data)) {
+  demand_location <- demand_data[i, c("latitude", "longitude")]
+  catchment <- st_buffer(st_as_sf(st_point(demand_location)), distance = distance_threshold)
+  providers_within_catchment <- provider_data[st_intersects(provider_data, catchment), ]
+  weighted_supply_data <- sum(providers_within_catchment$supply_data * providers_within_catchment$weight)
+  accessibility_scores[i] <- weighted_supply_data / sum(providers_within_catchment$weight)
+}
+
+# Normalize the accessibility scores between 0.1 and 1
+min_score <- min(accessibility_scores)
+max_score <- max(accessibility_scores)
+normalized_scores <- 0.1 + (accessibility_scores - min_score) / (max_score - min_score) * (1 - 0.1)
+
+# Add the normalized scores to the demand data
+demand_data$accessibility_score <- normalized_scores
+
+# Output the demand data with accessibility scores
+write.csv(demand_data, "demand_data_with_scores.csv", row.names = FALSE)
